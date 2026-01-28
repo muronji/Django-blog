@@ -35,7 +35,30 @@ jobs:
           pip install pip-audit
 
       - name: Dependency Scan (pip-audit)
-        run: pip-audit --path . --desc on
+        run: |
+          pip-audit --path . --format json > audit.json
+          cat audit.json
+          python3 - <<EOF
+          import json, sys
+          with open('audit.json') as f:
+              data = json.load(f)
+          
+          # Check for HIGH or CRITICAL vulnerabilities
+          high_critical_found = False
+          for dep in data.get('dependencies', []):
+              for vuln in dep.get('vulns', []):
+                  severity = vuln.get('severity', '').upper()
+                  if severity in ['HIGH', 'CRITICAL']:
+                      print(f"[{severity}] {vuln.get('id', 'Unknown')} in {dep['name']} {dep.get('version', '')}")
+                      high_critical_found = True
+          
+          if high_critical_found:
+              print("\nHIGH or CRITICAL vulnerabilities detected!")
+              sys.exit(1)
+          else:
+              print("\nNo HIGH or CRITICAL vulnerabilities found.")
+              sys.exit(0)
+          EOF
 
       - name: SAST Scan (Semgrep)
         uses: returntocorp/semgrep-action@v1
