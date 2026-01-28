@@ -13,8 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+            fetch-depth: 0  # fetch full history for PR scanning
 
       - name: Run gitleaks
         uses: zricethezav/gitleaks-action@v2
