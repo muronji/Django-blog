@@ -1,0 +1,15 @@
+name: Secure CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+    
