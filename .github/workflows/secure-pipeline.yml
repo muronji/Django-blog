@@ -35,16 +35,7 @@ jobs:
           pip install pip-audit
 
       - name: Dependency Scan (pip-audit)
-        run: |
-          pip-audit --path . --format json > audit.json
-          cat audit.json
-          python3 - <<EOF
-          import json, sys
-          with open('audit.json') as f:
-              vulns = json.load(f)
-          high = [v for v in vulns if v['severity'] in ['HIGH', 'CRITICAL']]
-          sys.exit(1 if high else 0)
-          EOF
+        run: pip-audit --path . --desc on
 
       - name: SAST Scan (Semgrep)
         uses: returntocorp/semgrep-action@v1
