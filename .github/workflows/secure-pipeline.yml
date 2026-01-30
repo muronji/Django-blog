@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch full history for PR scanning
+          fetch-depth: 0
 
       - name: Run gitleaks
         uses: zricethezav/gitleaks-action@v2
@@ -60,8 +60,26 @@ jobs:
               sys.exit(0)
           EOF
 
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: audit.json
+
       - name: SAST Scan (Semgrep)
         uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+          generateSarif: true
+          sarif_file: semgrep.sarif
+
+      - name: Upload Semgrep SARIF report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
 
       - name: Build Docker image
         run: docker build -t project1:ci .
@@ -72,3 +90,19 @@ jobs:
           image-ref: project1:ci
           severity: CRITICAL,HIGH
           exit-code: 1
+
+      - name: Container Security Scan with Report (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: project1:ci
+          severity: CRITICAL,HIGH
+          format: table
+          output: trivy-report.txt
+          exit-code: 1
+
+      - name: Upload Trivy Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.txt
